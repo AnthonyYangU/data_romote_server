@@ -29,8 +29,9 @@ module.exports = {
         };
         userInfo.name = ctx.request.body.userName;
         userInfo.pwd = ctx.request.body.userPwd;
+        // console.log('userInfo', userInfo)
         ctx.response.body = {
-            status: ((await FindOneByName(userInfo.name)) == userInfo.pwd ? 0 : 1)
+            status: ((await FindOneByName(userInfo.name)).pwd == userInfo.pwd ? 0 : 1)
         }
     },
 }
