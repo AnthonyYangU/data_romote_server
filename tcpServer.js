@@ -22,6 +22,7 @@ const tcpServer = net.createServer((socket) => {
         let rd = data.toString('Hex');
 
         let env = process.env.NODE_ENV || 'production';
+        console.log('env:', env)
 
         //用于测试
         if (env == 'develop') {
@@ -55,7 +56,6 @@ const tcpServer = net.createServer((socket) => {
         console.log(socket.addr, "received: ", socket.receivedDataArray)
         transComplete(socket.receivedDataArray)
         console.log(socket.addr, 'socket timeout');
-
         socket.end();
     });
 });
