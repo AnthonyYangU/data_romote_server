@@ -1,6 +1,6 @@
 const net = require('net');
 const TCP_PORT = "9000"
-const TIMEOUT = 1000;//tcp客户端超过6秒没发数据判为超时并断开连接
+const TIMEOUT = 6000;//tcp客户端超过6秒没发数据判为超时并断开连接
 const { transComplete } = require('./utils/dataTrans')
 
 // const translate = require('./trans.js');
@@ -8,7 +8,7 @@ const { transComplete } = require('./utils/dataTrans')
 // var tcpClient = null;//tcp客户端
 
 const tcpServer = net.createServer((socket) => {
-
+    socket.receiveFlag = false
     socket.receivedDataArray = []
     //connect
     let addr = socket.address().address + ':' + socket.address().port;
@@ -20,6 +20,7 @@ const tcpServer = net.createServer((socket) => {
     socket.on("data", data => {
         //生产环境中实际使用的
         let rd = data.toString('Hex');
+        socket.receiveFlag = false
 
         let env = process.env.NODE_ENV || 'production';
         console.log('env:', env)
@@ -35,8 +36,14 @@ const tcpServer = net.createServer((socket) => {
             }
         } else {
             //用于生产环境
-            console.log('received data:', rd)
-            socket.receivedDataArray.push(rd)
+            let date = new Date()
+            socket.receiveFlag = true
+            console.log(date, ':received data', rd)
+            if (rd.substring(0, 4) == '5b5a') {
+                tcpServer.write("received")
+                socket.receivedDataArray.push(rd)
+            }
+
         }
     });
 
@@ -53,9 +60,11 @@ const tcpServer = net.createServer((socket) => {
     socket.setTimeout(TIMEOUT);
     // 超过一定时间 没接收到数据，就主动断开连接。
     socket.on('timeout', () => {
-        console.log(socket.addr, "received: ", socket.receivedDataArray)
-        transComplete(socket.receivedDataArray)
-        console.log(socket.addr, 'socket timeout');
+        if (socket.receiveFlag) {
+            console.log(socket.addr, "received: ", socket.receivedDataArray)
+            transComplete(socket.receivedDataArray)
+            console.log(socket.addr, 'socket timeout');
+        }
         socket.end();
     });
 });
@@ -71,6 +80,7 @@ tcpServer.listen({ port: TCP_PORT, host: '0.0.0.0' }, () => {
 function description() {
     console.log("")
 }
+
 module.exports = {
     tcpServer,
     description
