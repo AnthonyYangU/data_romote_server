@@ -59,8 +59,8 @@ function trans(dataPackage, headMessage) {
     return dataArray;
 }
 
-//解析单个csv文件的数据,strArray数组长度应为5
-function transComplete(strArray) {
+//解析单个csv文件的数据,str数组长度应为5
+function transComplete(str) {
 
     //获取时间戳、mcu电压与电池电压
     let dateString = getFormatDate()
@@ -72,36 +72,46 @@ function transComplete(strArray) {
         batteryVoltage: ""
     }
     //获取头数据
-    let headDataArray = HexString2Data(strArray[0].substring(8, 28));
-    headMessage.deviceId = strArray[0].substring(4, 8)
+    let headDataArray = HexString2Data(str.substring(8, 28));
+    headMessage.deviceId = str.substring(4, 8)
 
     deviceInfo.FindByDeviceId(headMessage.deviceId).then(data => {
         headMessage.locationInfo = data[0].locationInfo
         headMessage.time = dateString + " " + headDataArray[0] + ":" + headDataArray[1] + ":" + headDataArray[2]
-        headMessage.mcuVoltage = headDataArray[3]
-        headMessage.batteryVoltage = headDataArray[4]
+        headMessage.mcuVoltage = headDataArray[3] / 10
+        headMessage.batteryVoltage = parseFloat((headDataArray[4] / 2048 * headMessage.mcuVoltage).toFixed(2))
         console.log("package head data", headMessage)
         //所有数据的集合
-        let CompleteDataArray = []
+        // let CompleteDataArray = []
 
         let dataPackage = ""
-        for (let index = 0; index < strArray.length; index++) {
-            if (index == 0) {
-                dataPackage = strArray[index].substring(8 + 20, 2028);
-            } else {
-                dataPackage = strArray[index].substring(8, 2028)
-            }
-            // console.log('index', index)
 
-            let analyseDataArray = trans(dataPackage, headMessage)
 
-            CompleteDataArray.push(...analyseDataArray)
-        }
+        dataPackage = str.substring(28, str.length - 4)
+
+        let CompleteDataArray = trans(dataPackage, headMessage)
+
+
+
+        // for (let index = 0; index < strArray.length; index++) {
+        //     if (index == 0) {
+        //         dataPackage = strArray[index].substring(8 + 20, 2028);
+        //     } else {
+        //         dataPackage = strArray[index].substring(8, 2028)
+        //     }
+        //     // console.log('index', index)
+
+        //     let analyseDataArray = trans(dataPackage, headMessage)
+
+        //     CompleteDataArray.push(...analyseDataArray)
+        // }
+
         // console.log('CompleteDataArray', CompleteDataArray)
 
         let newData = CompleteDataArray[CompleteDataArray.length - 1]
+        //写入数据库之中
         NewData.updateByDeviceId(newData)
-
+        console.log("data:", CompleteDataArray)
         iotData.creatData(CompleteDataArray)
         console.log('newData:', newData)
     })
