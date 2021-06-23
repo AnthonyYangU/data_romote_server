@@ -19,8 +19,8 @@ var tcp_client = net.Socket();
 // 连接 tcp server
 tcp_client.connect(options, function () {
     tcp_client.write(test0)
-    tcp_client.write(test1)
-    tcp_client.write(test2)
+    // tcp_client.write(test1)
+    // tcp_client.write(test2)
     // tcp_client.write(test3)
     // tcp_client.end()
 })
