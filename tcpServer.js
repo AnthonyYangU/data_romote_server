@@ -37,13 +37,12 @@ const tcpServer = net.createServer((socket) => {
         } else {
             //用于生产环境
             let date = new Date()
-            socket.receiveFlag = true
             console.log(date, ':received data', rd)
             if (rd.substring(0, 4) == '5b5a') {
-                tcpServer.write("received")
+                socket.receiveFlag = true
+                socket.write("received")
                 socket.receivedDataArray.push(rd)
             }
-
         }
     });
 
