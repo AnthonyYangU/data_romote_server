@@ -23,27 +23,18 @@ const tcpServer = net.createServer((socket) => {
         let env = process.env.NODE_ENV || 'production';
         console.log('env:', env)
 
-        //用于测试
-        if (env == 'develop') {
-            rd = data.toString()
-            let rdArray = rd.split('\r\n')
-            rdArray.pop()
-            console.log(rdArray)
-            for (let i = 0; i < rdArray.length; i++) {
-                socket.receivedDataArray.push(rdArray[i]);
-            }
+
+        //用于生产环境
+        let date = new Date()
+        console.log(date, ':received data', rd)
+        if (rd.substring(0, 4) == '5a5b') {
+            socket.write("received")
+            transComplete(rd)
+            // socket.receivedDataArray.push(rd)
         } else {
-            //用于生产环境
-            let date = new Date()
-            console.log(date, ':received data', rd)
-            if (rd.substring(0, 4) == '5a5b') {
-                socket.write("received")
-                transComplete(rd)
-                // socket.receivedDataArray.push(rd)
-            } else {
-                console.log("head not right")
-            }
+            console.log("head not right")
         }
+
     });
 
     // close

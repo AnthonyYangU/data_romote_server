@@ -63,7 +63,7 @@ function trans(dataPackage, headMessage) {
 function transComplete(str) {
 
     //获取时间戳、mcu电压与电池电压
-    let dateString = getFormatDate()
+    // let dateString = getFormatDate()
     let headMessage = {
         deviceId: '',
         locationInfo: '',
@@ -72,12 +72,15 @@ function transComplete(str) {
         batteryVoltage: ""
     }
     //获取头数据
-    let headDataArray = HexString2Data(str.substring(8, 28));
+    let headDataArray = HexString2Data(str.substring(8, 40));
     headMessage.deviceId = str.substring(4, 8)
 
     deviceInfo.FindByDeviceId(headMessage.deviceId).then(data => {
         headMessage.locationInfo = data[0].locationInfo
-        headMessage.time = dateString + " " + headDataArray[0] + ":" + headDataArray[1] + ":" + headDataArray[2]
+        //年月日
+        let dateString = headDataArray[0] + "-" + headDataArray[1] + "-" + headDataArray[2]
+        //完整的时间
+        headMessage.time = dateString + " " + headDataArray[3] + ":" + headDataArray[4] + ":" + headDataArray[5]
         headMessage.mcuVoltage = headDataArray[3] / 10
         headMessage.batteryVoltage = parseFloat((headDataArray[4] / 2048 * headMessage.mcuVoltage).toFixed(2))
         console.log("package head data", headMessage)
@@ -87,7 +90,7 @@ function transComplete(str) {
         let dataPackage = ""
 
 
-        dataPackage = str.substring(28, str.length - 4)
+        dataPackage = str.substring(40, str.length - 4)
 
         let CompleteDataArray = trans(dataPackage, headMessage)
 
@@ -111,7 +114,7 @@ function transComplete(str) {
         let newData = CompleteDataArray[CompleteDataArray.length - 1]
         //写入数据库之中
         NewData.updateByDeviceId(newData)
-        console.log("data:", CompleteDataArray)
+        // console.log("data:", CompleteDataArray)
         iotData.creatData(CompleteDataArray)
         console.log('newData:', newData)
     })
